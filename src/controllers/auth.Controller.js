@@ -49,15 +49,12 @@ const verifyOTP = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Mobile, Name, and OTP are required");
   }
 
-  console.log("Stored OTP:", users[mobile]);
-  console.log("Entered OTP:", otp);
-
   if (!users[mobile]) {
-    return res.status(400).json({ message: "OTP expired or not sent" });
+    throw new ApiError(401, "OTP expired or not sent")
   }
 
   if (users[mobile] !== otp) {
-    return res.status(401).json({ message: "Invalid OTP" });
+    throw new ApiError(401, "Inviled OTP")
   }
 
   let user = await User.findOne({ mobile });
@@ -65,7 +62,7 @@ const verifyOTP = asyncHandler(async (req, res) => {
 
   if (!user) {
     user = new User({ fullName, mobile });
-    await user.save(); // Save new user
+    await user.save(); 
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
