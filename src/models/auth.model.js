@@ -6,8 +6,6 @@ const userSchema = new mongoose.Schema(
     mobile: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
     },
     fullName: {
       type: String,
@@ -17,7 +15,7 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     refreshToken: {
-      type: String, // Store JWT token
+      type: String,
     },
   },
   { timestamps: true }

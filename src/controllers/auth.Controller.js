@@ -21,10 +21,12 @@ const generateAccessAndRefereshTokens = async (userId) => {
   }
 };
 
-const users = {}; // Ensure this object exists at a global scope
+const users = {};
 
 const sendOTP = asyncHandler(async (req, res) => {
   const { mobile, fullName } = req.body;
+  console.log("Body:", req.body);
+
   if (!mobile || !fullName) {
     throw new ApiError(400, "Mobile Number And Name are Required");
   }
@@ -35,12 +37,13 @@ const sendOTP = asyncHandler(async (req, res) => {
 
   users[mobile] = process.env.STATIC_OTP || "123456"; // Store OTP
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
-    );
+  console.log("Response Data:", new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully"));
+
+  res.status(200).json(
+    new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
+  );
 });
+
 
 const verifyOTP = asyncHandler(async (req, res) => {
   const { mobile, otp, fullName } = req.body;
@@ -50,11 +53,11 @@ const verifyOTP = asyncHandler(async (req, res) => {
   }
 
   if (!users[mobile]) {
-    throw new ApiError(401, "OTP expired or not sent")
+    throw new ApiError(401, "OTP expired or not sent");
   }
 
   if (users[mobile] !== otp) {
-    throw new ApiError(401, "Inviled OTP")
+    throw new ApiError(401, "Inviled OTP");
   }
 
   let user = await User.findOne({ mobile });
@@ -62,7 +65,7 @@ const verifyOTP = asyncHandler(async (req, res) => {
 
   if (!user) {
     user = new User({ fullName, mobile });
-    await user.save(); 
+    await user.save();
   }
 
   const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
