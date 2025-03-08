@@ -1,6 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
-import ApiError from "../utils/ApiError.js";
-import ApiResponse from "../utils/ApiResponse.js";
+
 import User from "../models/auth.model.js";
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -28,39 +27,58 @@ const sendOTP = asyncHandler(async (req, res) => {
   console.log("Body:", req.body);
 
   if (!mobile || !fullName) {
-    throw new ApiError(400, "Mobile Number And Name are Required");
+    return res.status(400).json({
+      success: false,
+      message: "Mobile Number And Name are Required",
+    });
+    // throw new ApiError(400, "Mobile Number And Name are Required");
   }
 
   if (mobile.length !== 10) {
-    throw new ApiError(400, "Invalid mobile number");
+    return res.status(400).json({
+      success: false,
+      message: "Invalid mobile number",
+    });
+    // throw new ApiError(400, "Invalid mobile number");
   }
 
   users[mobile] = process.env.STATIC_OTP || "123456";
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
-    );
+  res.status(200).json(
+    {
+      success: true,
+      message: "OTP sent successfully",
+      otp: users[mobile],
+    }
+    // new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
+  );
 });
 
 const verifyOTP = asyncHandler(async (req, res) => {
   const { mobile, otp, fullName } = req.body;
 
   if (!mobile || !otp || !fullName) {
-    throw new ApiError(400, "Mobile, Name, and OTP are required");
+    return res.status(400).json({
+      success: false,
+      message: "Mobile, Name, and OTP are required",
+    });
   }
 
   if (!users[mobile]) {
-    throw new ApiError(401, "OTP expired or not sent");
+    return res.status(401).json({
+      success: false,
+      message: "OTP expired or not sent",
+    });
   }
 
   if (users[mobile] !== otp) {
-    throw new ApiError(401, "Invalid OTP");
+    return res.status(401).json({
+      success: false,
+      message: "Invalid OTP",
+    });
   }
 
   let user = await User.findOne({ mobile });
-  
 
   if (!user) {
     user = new User({ fullName, mobile });
@@ -81,18 +99,15 @@ const verifyOTP = asyncHandler(async (req, res) => {
     secure: true,
   };
 
- 
-  const responseData = {
-    user: user.toObject(),
-    accessToken,
-    refreshToken,
-  };
-
-  return res
+  res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json(new ApiResponse(200, responseData, "User logged in successfully"));
+    .json({
+      success: true,
+      message: "OTP verified successfully",
+      user,
+    });
 });
 
 export { sendOTP, verifyOTP };
