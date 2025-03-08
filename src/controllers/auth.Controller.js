@@ -35,15 +35,14 @@ const sendOTP = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid mobile number");
   }
 
-  users[mobile] = process.env.STATIC_OTP || "123456"; // Store OTP
+  users[mobile] = process.env.STATIC_OTP || "123456";
 
-  console.log("Response Data:", new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully"));
-
-  res.status(200).json(
-    new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
-  );
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { otp: users[mobile] }, "OTP sent successfully")
+    );
 });
-
 
 const verifyOTP = asyncHandler(async (req, res) => {
   const { mobile, otp, fullName } = req.body;
@@ -57,11 +56,11 @@ const verifyOTP = asyncHandler(async (req, res) => {
   }
 
   if (users[mobile] !== otp) {
-    throw new ApiError(401, "Inviled OTP");
+    throw new ApiError(401, "Invalid OTP");
   }
 
   let user = await User.findOne({ mobile });
-  console.log(user);
+  
 
   if (!user) {
     user = new User({ fullName, mobile });
@@ -82,17 +81,18 @@ const verifyOTP = asyncHandler(async (req, res) => {
     secure: true,
   };
 
+ 
+  const responseData = {
+    user: user.toObject(),
+    accessToken,
+    refreshToken,
+  };
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        { user, accessToken, refreshToken },
-        "User logged in successfully"
-      )
-    );
+    .json(new ApiResponse(200, responseData, "User logged in successfully"));
 });
 
 export { sendOTP, verifyOTP };
