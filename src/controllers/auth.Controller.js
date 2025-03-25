@@ -1,5 +1,4 @@
 import asyncHandler from "../utils/asyncHandler.js";
-
 import User from "../models/auth.model.js";
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -107,6 +106,8 @@ const verifyOTP = asyncHandler(async (req, res) => {
       success: true,
       message: "OTP verified successfully",
       user,
+      accessToken,
+      refreshToken,
     });
 });
 
